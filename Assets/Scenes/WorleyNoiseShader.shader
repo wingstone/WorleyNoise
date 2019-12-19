@@ -4,6 +4,7 @@
     {
         _MainTex ("Texture", 2D) = "white" {}
         _UVScale("UV Scale", Range(1, 100)) = 10
+        _NormalIntensity("Normal Intensity", Range(0, 100)) = 10
     }
     SubShader
     {
@@ -32,6 +33,7 @@
             sampler2D _MainTex;
             float4 _MainTex_TextureSize;
             float _UVScale;
+            float _NormalIntensity;
 
             v2f vert (appdata v)
             {
@@ -49,6 +51,7 @@
             float4 frag (v2f i) : SV_Target
             {
                 float min_dist = 10;
+                float3 color = 0;
 
                 //对屏幕进行缩放及拉伸处理
                 float2 uv = i.uv * _UVScale;
@@ -72,8 +75,17 @@
                         min_dist = min(min_dist, dist);
                     }
                 }
+                color = min_dist;
 
-                return min_dist;
+                // //new shading mathod
+                // min_dist = min_dist*min_dist;
+                // // min_dist = min_dist*min_dist;
+                // float3 dx = float3(1, 0, ddx(min_dist)*_NormalIntensity);
+                // float3 dy = float3(0, 1, ddy(min_dist)*_NormalIntensity);
+                // float3 normal = normalize(cross(dx, dy));
+                // color = normal*0.5 + 0.5;
+
+                return float4(color, 1);
             }
             ENDCG
         }

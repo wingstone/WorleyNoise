@@ -13,6 +13,9 @@ public class WorleyNoise : MonoBehaviour
     [Range(1, 100)]
     public float uvScale = 10f;
 
+    [Range(1, 100)]
+    public float normalIntensity = 10f;
+
     #endregion
 
 
@@ -41,6 +44,7 @@ public class WorleyNoise : MonoBehaviour
 
             worleyNoiseMat = new Material( worleyNoiseShader );
             worleyNoiseMat.SetFloat("_UVScale", uvScale);
+            worleyNoiseMat.SetFloat("_NormalIntensity", normalIntensity);
             worleyNoiseMat.hideFlags = HideFlags.HideAndDontSave;
         }
     }
@@ -50,6 +54,7 @@ public class WorleyNoise : MonoBehaviour
         if ( worleyNoiseMat != null )
         {
             worleyNoiseMat.SetFloat("_UVScale", uvScale);
+            worleyNoiseMat.SetFloat("_NormalIntensity", normalIntensity);
 
             Graphics.Blit( src, dest, worleyNoiseMat );
         }
