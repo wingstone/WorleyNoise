@@ -5,6 +5,11 @@
         _MainTex ("Texture", 2D) = "white" {}
         _UVScale("UV Scale", Range(1, 100)) = 10
         _NormalIntensity("Normal Intensity", Range(0, 100)) = 10
+
+        _DiffuseColor("Diffuse Color", Color) = (0.5,0.5,0.5,0.5)
+        _SpecularColor("Specular Color", Color) = (0.5,0.5,0.5,0.5)
+        _Roughness("Roughness", Range(0, 1)) = 0.5
+        _LightDirection("Light Direction", Vector) = (1,0,0,0)
     }
     SubShader
     {
@@ -17,6 +22,7 @@
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+            #include "UnityStandardBRDF.cginc"
 
             struct appdata
             {
@@ -34,6 +40,11 @@
             float4 _MainTex_TextureSize;
             float _UVScale;
             float _NormalIntensity;
+
+            float4 _DiffuseColor;
+            float4 _SpecularColor;
+            float _Roughness;
+            float4 _LightDirection;
 
             v2f vert (appdata v)
             {
@@ -75,15 +86,36 @@
                         min_dist = min(min_dist, dist);
                     }
                 }
-                color = min_dist;
+                // color = min_dist;
 
-                // //new shading mathod
+                //add shading
+                min_dist = min_dist*min_dist;
                 // min_dist = min_dist*min_dist;
-                // // min_dist = min_dist*min_dist;
-                // float3 dx = float3(1, 0, ddx(min_dist)*_NormalIntensity);
-                // float3 dy = float3(0, 1, ddy(min_dist)*_NormalIntensity);
-                // float3 normal = normalize(cross(dx, dy));
-                // color = normal*0.5 + 0.5;
+                float _ddx = ddx(min_dist)*_NormalIntensity;
+                float _ddy = ddy(min_dist)*_NormalIntensity;
+                float3 dx = float3(1, 0, _ddx);
+                float3 dy = float3(0, 1, _ddy);
+
+                float3 normalDir = normalize(cross(dx, dy));
+                float3 lightDir = normalize(_LightDirection.xyz);
+                float3 viewDir = float3(0,0,1);
+                float3 halfDir = normalize(viewDir+lightDir);
+
+                float nl = saturate(dot(normalDir, lightDir));
+                float nv = saturate(dot(normalDir, viewDir));
+                float lh = saturate(dot(halfDir, lightDir));
+                float nh = saturate(dot(normalDir, lightDir));
+
+                float3 lightColor = 1;
+                //diffuse
+                color += lightColor * _DiffuseColor.rgb * nl;
+                //specular  //直接粘Unity的了，自己写好麻烦==
+                float roughness = PerceptualRoughnessToRoughness(_Roughness);
+                roughness = max(roughness, 0.002);
+                float V = SmithJointGGXVisibilityTerm (nl, nv, roughness);
+                float D = GGXTerm (nh, roughness);
+                float3 F = FresnelTerm (_SpecularColor, lh);
+                color += V * D * UNITY_PI * F * lightColor * nl;
 
                 return float4(color, 1);
             }

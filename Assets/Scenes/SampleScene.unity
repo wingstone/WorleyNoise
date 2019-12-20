@@ -278,4 +278,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   worleyNoiseShader: {fileID: 4800000, guid: 0fbf41a76a0527b4cb13513b157b3db4, type: 3}
   uvScale: 15.1
-  normalIntensity: 32.2
+  normalIntensity: 47.7
+  diffuseColor: {r: 0.6603774, g: 0.4828231, b: 0.65714043, a: 1}
+  specularColor: {r: 0.3679245, g: 0.3679245, b: 0.3679245, a: 1}
+  roughness: 0.2
+  lightDir: {x: -0.33, y: 0.38, z: 1, w: 0}

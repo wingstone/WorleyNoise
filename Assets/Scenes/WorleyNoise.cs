@@ -8,13 +8,19 @@ public class WorleyNoise : MonoBehaviour
     //public region
     #region public parameters
 
+    //basic control
     public Shader worleyNoiseShader = null;
-
     [Range(1, 100)]
     public float uvScale = 10f;
-
     [Range(1, 100)]
     public float normalIntensity = 10f;
+
+    //material control
+    public Color diffuseColor = Color.gray;
+    public Color specularColor = Color.gray;
+    [Range(0, 1)]
+    public float roughness = 0.5f;
+    public Vector4 lightDir = new Vector4(1,0,0);
 
     #endregion
 
@@ -45,6 +51,12 @@ public class WorleyNoise : MonoBehaviour
             worleyNoiseMat = new Material( worleyNoiseShader );
             worleyNoiseMat.SetFloat("_UVScale", uvScale);
             worleyNoiseMat.SetFloat("_NormalIntensity", normalIntensity);
+
+            worleyNoiseMat.SetColor("_DiffuseColor", diffuseColor);
+            worleyNoiseMat.SetColor("_SpecularColor", specularColor);
+            worleyNoiseMat.SetFloat("_Roughness", roughness);
+            worleyNoiseMat.SetVector("_LightDirection", lightDir);
+
             worleyNoiseMat.hideFlags = HideFlags.HideAndDontSave;
         }
     }
@@ -55,6 +67,11 @@ public class WorleyNoise : MonoBehaviour
         {
             worleyNoiseMat.SetFloat("_UVScale", uvScale);
             worleyNoiseMat.SetFloat("_NormalIntensity", normalIntensity);
+
+            worleyNoiseMat.SetColor("_DiffuseColor", diffuseColor);
+            worleyNoiseMat.SetColor("_SpecularColor", specularColor);
+            worleyNoiseMat.SetFloat("_Roughness", roughness);
+            worleyNoiseMat.SetVector("_LightDirection", lightDir);
 
             Graphics.Blit( src, dest, worleyNoiseMat );
         }
