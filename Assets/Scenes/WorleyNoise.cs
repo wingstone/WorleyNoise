@@ -5,6 +5,21 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class WorleyNoise : MonoBehaviour
 {
+
+    public enum DisplayEnum
+    {
+        DISPLAY_DISTANCE,
+        DISPLAY_LIGHT,
+        DISPLAY_VOLUME,
+    };
+
+    string[] DisplayKeywordsStrings = 
+    {
+        "DISPLAY_DISTANCE",
+        "DISPLAY_LIGHT",
+        "DISPLAY_VOLUME",
+    };
+
     //public region
     #region public parameters
 
@@ -22,6 +37,11 @@ public class WorleyNoise : MonoBehaviour
     public float roughness = 0.5f;
     public Vector4 lightDir = new Vector4(1,0,0);
 
+    //volume color
+    public Color volumeColor = Color.gray;
+
+    public DisplayEnum displayType = DisplayEnum.DISPLAY_DISTANCE;
+
     #endregion
 
 
@@ -29,8 +49,39 @@ public class WorleyNoise : MonoBehaviour
     #region private parameters
 
     private Material worleyNoiseMat = null;
-
+    DisplayEnum oldDisplayType = DisplayEnum.DISPLAY_DISTANCE;
+    bool isFirst = true;
     #endregion
+
+    void UpdateMaterial()
+    {
+        worleyNoiseMat.SetFloat("_UVScale", uvScale);
+        worleyNoiseMat.SetFloat("_NormalIntensity", normalIntensity);
+
+        worleyNoiseMat.SetColor("_DiffuseColor", diffuseColor);
+        worleyNoiseMat.SetColor("_SpecularColor", specularColor);
+        worleyNoiseMat.SetFloat("_Roughness", roughness);
+        worleyNoiseMat.SetVector("_LightDirection", lightDir);
+
+        worleyNoiseMat.SetColor("_VolumeColor", volumeColor);
+
+        if ( oldDisplayType != displayType || isFirst)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == (int)displayType )
+                {
+                    worleyNoiseMat.EnableKeyword(DisplayKeywordsStrings[i]);
+                }
+                else
+                {
+                    worleyNoiseMat.DisableKeyword(DisplayKeywordsStrings[i]);
+                }
+            }
+            oldDisplayType = displayType;
+            isFirst = false;
+        }
+    }
 
 
     void OnEnable()
@@ -49,14 +100,7 @@ public class WorleyNoise : MonoBehaviour
             }
 
             worleyNoiseMat = new Material( worleyNoiseShader );
-            worleyNoiseMat.SetFloat("_UVScale", uvScale);
-            worleyNoiseMat.SetFloat("_NormalIntensity", normalIntensity);
-
-            worleyNoiseMat.SetColor("_DiffuseColor", diffuseColor);
-            worleyNoiseMat.SetColor("_SpecularColor", specularColor);
-            worleyNoiseMat.SetFloat("_Roughness", roughness);
-            worleyNoiseMat.SetVector("_LightDirection", lightDir);
-
+            UpdateMaterial();
             worleyNoiseMat.hideFlags = HideFlags.HideAndDontSave;
         }
     }
@@ -65,13 +109,7 @@ public class WorleyNoise : MonoBehaviour
     {
         if ( worleyNoiseMat != null )
         {
-            worleyNoiseMat.SetFloat("_UVScale", uvScale);
-            worleyNoiseMat.SetFloat("_NormalIntensity", normalIntensity);
-
-            worleyNoiseMat.SetColor("_DiffuseColor", diffuseColor);
-            worleyNoiseMat.SetColor("_SpecularColor", specularColor);
-            worleyNoiseMat.SetFloat("_Roughness", roughness);
-            worleyNoiseMat.SetVector("_LightDirection", lightDir);
+            UpdateMaterial();
 
             Graphics.Blit( src, dest, worleyNoiseMat );
         }

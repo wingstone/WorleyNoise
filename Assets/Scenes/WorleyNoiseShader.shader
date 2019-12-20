@@ -10,6 +10,8 @@
         _SpecularColor("Specular Color", Color) = (0.5,0.5,0.5,0.5)
         _Roughness("Roughness", Range(0, 1)) = 0.5
         _LightDirection("Light Direction", Vector) = (1,0,0,0)
+
+        _VolumeColor("Volume Color", Color) = (0.5,0.5,0.5,0.5)
     }
     SubShader
     {
@@ -18,6 +20,9 @@
         Pass
         {
             CGPROGRAM
+
+            #pragma shader_feature DISPLAY_DISTANCE DISPLAY_LIGHT DISPLAY_VOLUME
+
             #pragma vertex vert
             #pragma fragment frag
 
@@ -46,6 +51,8 @@
             float _Roughness;
             float4 _LightDirection;
 
+            float4 _VolumeColor;
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -58,6 +65,9 @@
             float2 random2( float2 p ) {
                 return frac(sin(float2(dot(p,float2(127.1,311.7)),dot(p,float2(269.5,183.3))))*43758.5453);
             }
+            float3 random3( float3 p ) {
+                return frac(sin(float3(dot(p,float3(127.1,311.7,269.5)), dot(p,float3(269.5,183.3,127.1)), dot(p,float3(311.7,269.5,183.3)) ))*43758.5453);
+            }
 
             float4 frag (v2f i) : SV_Target
             {
@@ -68,10 +78,70 @@
                 float2 uv = i.uv * _UVScale;
                 uv.x *= _ScreenParams.x/_ScreenParams.y;
 
+#if defined(DISPLAY_VOLUME)
+                //在体内进行步进
+                float3 pos = float3(uv, _Time.x*5);
+                float alpha = 0;
+                float3 sumCol = 0;
+                for (int i = 0; i < 20; i++)
+                {
+                    if ( alpha >= 1)	//累积足够
+                    {
+                        break;
+                    }
+                    else		//步进累计颜色
+                    {
+                        float3 id3 = floor(pos);
+                        float3 offset3 = frac(pos);
+                        min_dist = 10;
+                        //循环相邻27个控制点，获取当前像素距最近控制点的距离
+                        for ( int l = -1; l <= 1; l++ )
+                        {
+                            for ( int m = -1; m <= 1; m++ )
+                            {
+                                for ( int n = -1; n <= 1; n++ )
+                                {
+                                    float3 searchPoint = id3 + float3( l, m, n );
+                                    
+                                    //对栅格点进行随机偏移
+                                    searchPoint += sin(random3( searchPoint ) * UNITY_TWO_PI + _Time.x)*0.5+0.5;
+
+                                    float dist = distance(pos, searchPoint);
+                                    min_dist = min(min_dist, dist);
+                                }
+                            }       
+                        }
+                        float density = saturate(1 -  min_dist);
+                        density = smoothstep(0.5, 2.0, density);
+
+
+#ifdef UNITY_COLORSPACE_GAMMA
+                        float3 localCol = GammaToLinearSpace(_VolumeColor.rgb) * density;
+#else
+                        float3 localCol = _VolumeColor.rgb * density;
+#endif
+
+                        sumCol += localCol * (1 - alpha);;
+                        alpha += density * (1 - alpha);
+
+                        pos += float3(0,0,0.1);
+                    }
+                }
+
+                float3 bgColor = 0;
+                alpha = clamp(0, 1, alpha);
+                sumCol += bgColor*(1- alpha);
+
+                return float4(sumCol, 1);
+
+#endif
+
+
                 //栅格化获取id，及offset
                 float2 id = floor(uv);
                 float2 offset = frac(uv);
 
+                min_dist = 10;
                 //循环相邻9个控制点，获取当前像素距最近控制点的距离
                 for ( int m = -1; m <= 1; m++ )
                 {
@@ -80,13 +150,18 @@
                         float2 searchPoint = id + float2( m, n );
                         
                         //对栅格点进行随机偏移
-                        searchPoint += random2( searchPoint );
+                        searchPoint += sin(random2( searchPoint ) * UNITY_TWO_PI + _Time.y)*0.5+0.5;
 
                         float dist = distance(uv, searchPoint);
                         min_dist = min(min_dist, dist);
                     }
                 }
-                // color = min_dist;
+
+#ifdef DISPLAY_DISTANCE
+                color = min_dist;
+                return float4(color, 1);
+
+#elif defined(DISPLAY_LIGHT) 
 
                 //add shading
                 min_dist = min_dist*min_dist;
@@ -108,16 +183,32 @@
 
                 float3 lightColor = 1;
                 //diffuse
+#ifdef UNITY_COLORSPACE_GAMMA
+                color += lightColor * GammaToLinearSpace(_DiffuseColor.rgb) * nl;
+#else
                 color += lightColor * _DiffuseColor.rgb * nl;
+#endif
+
                 //specular  //直接粘Unity的了，自己写好麻烦==
                 float roughness = PerceptualRoughnessToRoughness(_Roughness);
                 roughness = max(roughness, 0.002);
                 float V = SmithJointGGXVisibilityTerm (nl, nv, roughness);
                 float D = GGXTerm (nh, roughness);
+#ifdef UNITY_COLORSPACE_GAMMA
+                float3 F = FresnelTerm (GammaToLinearSpace(_SpecularColor), lh);
+#else
                 float3 F = FresnelTerm (_SpecularColor, lh);
+#endif
                 color += V * D * UNITY_PI * F * lightColor * nl;
 
+#ifdef UNITY_COLORSPACE_GAMMA
+                return float4(LinearToGammaSpace(color), 1);
+#else
                 return float4(color, 1);
+#endif
+
+#endif
+
             }
             ENDCG
         }

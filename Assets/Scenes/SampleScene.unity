@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641222, b: 0.57481694, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -217,8 +217,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
@@ -277,9 +277,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   worleyNoiseShader: {fileID: 4800000, guid: 0fbf41a76a0527b4cb13513b157b3db4, type: 3}
-  uvScale: 15.1
-  normalIntensity: 47.7
-  diffuseColor: {r: 0.6603774, g: 0.4828231, b: 0.65714043, a: 1}
-  specularColor: {r: 0.3679245, g: 0.3679245, b: 0.3679245, a: 1}
-  roughness: 0.2
-  lightDir: {x: -0.33, y: 0.38, z: 1, w: 0}
+  uvScale: 10
+  normalIntensity: 40.7
+  diffuseColor: {r: 0.745283, g: 0.7094922, b: 0.6995817, a: 1}
+  specularColor: {r: 0.2509804, g: 0.22352941, b: 0.19607843, a: 1}
+  roughness: 0.32
+  lightDir: {x: -1.2, y: 0.56, z: 1.87, w: 0}
+  volumeColor: {r: 1, g: 0.83632773, b: 0.4292453, a: 1}
+  displayType: 2
