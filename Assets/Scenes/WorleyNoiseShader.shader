@@ -61,12 +61,19 @@
                 return o;
             }
 
+            //tool function
+
             //随机函数，根据id返回0-1范围的值
             float2 random2( float2 p ) {
                 return frac(sin(float2(dot(p,float2(127.1,311.7)),dot(p,float2(269.5,183.3))))*43758.5453);
             }
             float3 random3( float3 p ) {
                 return frac(sin(float3(dot(p,float3(127.1,311.7,269.5)), dot(p,float3(269.5,183.3,127.1)), dot(p,float3(311.7,269.5,183.3)) ))*43758.5453);
+            }
+
+            float3 pal( in float t, in float3 a, in float3 b, in float3 c, in float3 d )
+            {
+                return a + b*cos( 6.28318*(c*t+d) );
             }
 
             float4 frag (v2f i) : SV_Target
@@ -80,10 +87,10 @@
 
 #if defined(DISPLAY_VOLUME)
                 //在体内进行步进
-                float3 pos = float3(uv, _Time.x*5);
+                float3 pos = float3(uv, _Time.y*0.5);
                 float alpha = 0;
                 float3 sumCol = 0;
-                for (int i = 0; i < 20; i++)
+                for (int i = 0; i < 25; i++)
                 {
                     if ( alpha >= 1)	//累积足够
                     {
@@ -104,15 +111,17 @@
                                     float3 searchPoint = id3 + float3( l, m, n );
                                     
                                     //对栅格点进行随机偏移
-                                    searchPoint += sin(random3( searchPoint ) * UNITY_TWO_PI + _Time.x)*0.5+0.5;
+                                    searchPoint += sin(random3( searchPoint ) * UNITY_TWO_PI +_Time.y)*0.5+0.5;
 
                                     float dist = distance(pos, searchPoint);
                                     min_dist = min(min_dist, dist);
                                 }
                             }       
                         }
+                        //对距离场重新映射，得到类似牢笼的效果
                         float density = saturate(1 -  min_dist);
-                        density = smoothstep(0.5, 2.0, density);
+                        density = smoothstep(0.8, 1.3, density) ;
+                        density += pow(min_dist, 5)*0.1;
 
 
 #ifdef UNITY_COLORSPACE_GAMMA
@@ -124,7 +133,7 @@
                         sumCol += localCol * (1 - alpha);;
                         alpha += density * (1 - alpha);
 
-                        pos += float3(0,0,0.1);
+                        pos += float3(0,0,0.04);
                     }
                 }
 

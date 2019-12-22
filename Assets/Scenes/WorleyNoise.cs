@@ -22,15 +22,19 @@ public class WorleyNoise : MonoBehaviour
 
     //public region
     #region public parameters
+    
+    public DisplayEnum displayType = DisplayEnum.DISPLAY_DISTANCE;
 
     //basic control
+    [Header("Basic prameters")]
     public Shader worleyNoiseShader = null;
     [Range(1, 100)]
     public float uvScale = 10f;
     [Range(1, 100)]
     public float normalIntensity = 10f;
 
-    //material control
+    //light control
+    [Header("Light prameters")]
     public Color diffuseColor = Color.gray;
     public Color specularColor = Color.gray;
     [Range(0, 1)]
@@ -38,9 +42,8 @@ public class WorleyNoise : MonoBehaviour
     public Vector4 lightDir = new Vector4(1,0,0);
 
     //volume color
+    [Header("Volume prameters")]
     public Color volumeColor = Color.gray;
-
-    public DisplayEnum displayType = DisplayEnum.DISPLAY_DISTANCE;
 
     #endregion
 
